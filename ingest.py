@@ -1,31 +1,62 @@
 import os
-from client import DoorLoopClient
+import argparse
 from dotenv import load_dotenv
-
-load_dotenv()  # Load .env file
+from client import DoorLoopClient
+from lease import Lease
 
 def main():
+    # Argument parsing
+    parser = argparse.ArgumentParser(description="Ingest data from DoorLoop API.")
+    parser.add_argument("target", choices=["user", "properties", "leases"], help="What data to fetch")
+    args = parser.parse_args()
+
+    # Load environment variables
+    load_dotenv()
     api_key = os.getenv("DOORLOOP_API_KEY")
+    
     if not api_key:
-        raise RuntimeError("DOORLOOP_API_KEY is not set")
+        raise RuntimeError("Missing DOORLOOP_API_KEY environment variable")
 
-    client = DoorLoopClient(api_key=api_key)
+    # Initialize DoorLoop client
+    client = DoorLoopClient(api_key)
 
-    all_properties = []
-    page = 1
-    while True:
-        print(f"Fetching page {page}")
-        data = client.get_properties(page=page)
-        properties = data.get("data", [])
-        if not properties:
-            break
-        all_properties.extend(properties)
-        if not data.get("nextPage"):
-            break
-        page += 1
+    # Conditional execution
+    if args.target == "user":
+        try:
+            user = client.get_user_info()
+            print("User Info:")
+            print(user)
+        except Exception as e:
+            print(f"Error fetching user info: {e}")
 
-    print(f"Fetched {len(all_properties)} properties total")
-    # Write to file or DB here
+    elif args.target == "properties":
+        try:
+            properties = client.get_properties()
+            print(f"Found {len(properties.get('data', []))} properties")
+            for prop in properties.get("data", []):
+                print(f"{prop.get('name')} (ID: {prop.get('id')})")
+        except Exception as e:
+            print(f"Error fetching properties: {e}")
+
+    elif args.target == "leases":
+        try:
+            leases = []
+            leases = client.get_leases()
+            print(f"Found {len(leases.get('data', []))} leases")
+            print(leases["data"][0])
+            for lease_json in leases.get("data", []):
+                lease_obj = Lease(
+                    lease_number=lease_json.get("reference"),
+                    property_number=lease_json.get("property"),
+                address="Address not in lease data",  # You may fetch this separately if needed
+                start_date=lease_json.get("start"),
+                end_date=lease_json.get("end")
+            )
+                print(lease_obj)
+
+
+        except Exception as e:
+            print(f"Error fetching leases: {e}")
 
 if __name__ == "__main__":
     main()
