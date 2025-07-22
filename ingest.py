@@ -3,6 +3,7 @@ import argparse
 from dotenv import load_dotenv
 from client import DoorLoopClient
 from lease import Lease
+from property import Property
 
 def main():
     # Argument parsing
@@ -31,30 +32,40 @@ def main():
 
     elif args.target == "properties":
         try:
-            properties = client.get_properties()
+            
+            all_properties= []         
+            properties = client.get_all_properties()
+            for property_json in properties:
+                prop_obj = Property (
+                    propertyid = property_json.get("id",None),
+                    propertyclass=  property_json.get("class",None),
+                    propertyname = property_json.get("name",None),
+                    propertytype=property_json.get("type",None)
+                )
+                all_properties.append(prop_obj)
+            for j in all_properties:
+                print(j)       
+            
             print(f"Found {len(properties.get('data', []))} properties")
-            for prop in properties.get("data", []):
-                print(f"{prop.get('name')} (ID: {prop.get('id')})")
         except Exception as e:
             print(f"Error fetching properties: {e}")
 
     elif args.target == "leases":
         try:
-            leases = []
-            leases = client.get_leases()
-            print(f"Found {len(leases.get('data', []))} leases")
-            print(leases["data"][0])
-            for lease_json in leases.get("data", []):
+            all_leases = []
+            leases = client.get_all_leases()
+            for lease_json in leases:
                 lease_obj = Lease(
                     lease_number=lease_json.get("reference"),
                     property_number=lease_json.get("property"),
-                address="Address not in lease data",  # You may fetch this separately if needed
-                start_date=lease_json.get("start"),
-                end_date=lease_json.get("end")
-            )
-                print(lease_obj)
-
-
+                    start_date=lease_json.get("start"),
+                    end_date=lease_json.get("end"),
+                    status=lease_json.get("status"),
+                    units=lease_json.get("units"),
+                    # lease_type=ltype # Add this field in Lease class
+                )
+                all_leases.append(lease_obj)    
+            print(max([len(x.units) for x in all_leases]))
         except Exception as e:
             print(f"Error fetching leases: {e}")
 

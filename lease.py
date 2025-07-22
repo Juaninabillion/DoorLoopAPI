@@ -1,11 +1,12 @@
 class Lease:
-    def __init__(self, lease_number, property_number, address, start_date, end_date, status=None):
+    def __init__(self, lease_number, property_number, start_date, end_date,units, lease_type=None,status=None):
         self._lease_number = lease_number
         self._property_number = property_number
-        self._address = address
         self._start_date = start_date
         self._end_date = end_date
         self._status = status
+        self._units = units or []
+        self._lease_type = lease_type
 
     # Lease Number
     @property
@@ -24,15 +25,6 @@ class Lease:
     @property_number.setter
     def property_number(self, value):
         self._property_number = value
-
-    # Address
-    @property
-    def address(self):
-        return self._address
-
-    @address.setter
-    def address(self, value):
-        self._address = value
 
     # Start Date
     @property
@@ -61,6 +53,25 @@ class Lease:
     def status(self, value):
         self._status = value
 
+    @property
+    def units(self):
+        return self._units 
+    
+    @units.setter
+    def units(self,value):
+        self._units = value
+
+    @property
+    def lease_type(self):
+        return self._lease_type
+
+    @lease_type.setter
+    def lease_type(self,value):
+        self._lease_type = value
+
+  
+
     def __str__(self):
-        return (f"Lease #{self.lease_number} for Property #{self.property_number}, "
-                f"Address: {self.address}, Start: {self.start_date}, End: {self.end_date}, Status: {self.status}")
+        return (f"Lease #{self.lease_number} ({self.lease_type}) for Property #{self.property_number}, "
+                f"Start: {self.start_date}, End: {self.end_date}, Status: {self.status}, "
+                f"Units: {self.units}")
