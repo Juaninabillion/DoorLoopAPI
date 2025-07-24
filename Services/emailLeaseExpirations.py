@@ -19,6 +19,11 @@ lease_url = os.getenv("DOORLOOP_LEASE_URL")
 send_email = os.getenv("SEND_EMAIL", "FALSE")
 lease_tracker = []
 api_key = os.getenv("DOORLOOP_API_KEY")
+resiEmail = os.getenv("RESIDENTIAL_EMAIL", "")
+comEmail = os.getenv("COM_EMAIL", "")
+ccEmail = os.getenv("CCEMAIL","")
+
+
 
 
 def send_email(subject, body, to_email):
@@ -31,7 +36,7 @@ def send_email(subject, body, to_email):
         msg["Subject"] = subject
         msg["From"] = smptuser
         msg["To"] = to_email
-        msg["Cc"]="juan.cm.alban@gmail.com"
+        msg["Cc"]=ccEmail
         html_part = MIMEText(body, "html")
         msg.attach(html_part)
 
@@ -51,10 +56,10 @@ def main():
     for propclass in ["Residential", "Commercial"]:
         if propclass == "Residential":
             leases = fetch_residential_expiring_leases()
-            email_to = "rentals@alphaacq.com"
+            email_to = resiEmail
         else:
             leases = fetch_commercial_expiring_leases()
-            email_to = "leasing@alphaacq.com"
+            email_to = comEmail
         if len(leases) == 0:
             print(f"No {propclass.lower()} leases expiring.")
             continue
